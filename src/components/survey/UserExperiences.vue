@@ -5,7 +5,9 @@
       <div>
         <base-button>Load Submitted Experiences</base-button>
       </div>
-      <ul>
+
+      <p v-if="isLoading">Loading...</p>
+      <ul v-else-if="!isLoading && surveyResults.length > 0">
         <survey-result
           v-for="result in surveyResults"
           :key="result.id"
@@ -13,6 +15,10 @@
           :rating="result.rating"
         ></survey-result>
       </ul>
+
+      <p v-else-if="!isLoading && surveyResults.length === 0">No experience found</p>
+      <p v-if="error">Failed to fetch data</p>
+
     </base-card>
   </section>
 </template>
@@ -26,7 +32,9 @@ export default {
   },
   data() {
     return {
-      surveyResults: []
+      surveyResults: [],
+      isLoading: false,
+      error: false,
     }
   },
   mounted() {
@@ -34,30 +42,43 @@ export default {
   },
   methods: {
     async fetchSurveyResults() {
+      this.isLoading = true
+      this.error = false
       let data = null
-      const response = await fetch("https://vue-http-demo-85943-default-rtdb.asia-southeast1.firebasedatabase.app/surveys.json", {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
 
-      if (response.ok) {
-        data = await response.json()
+      try {
+        const response = await fetch("https://vue-http-demo-85943-default-rtdb.asia-southeast1.firebasedatabase.app/surveys.json", {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
 
-        for (const id in data) {
-          console.log(data[id])
-          this.surveyResults.push({
-            id: id,
-            name: data[id].name,
-            rating: data[id].rating,
-          })
+        if (response.ok) {
+          data = await response.json()
+
+          for (const id in data) {
+            console.log(data[id])
+            this.surveyResults.push({
+              id: id,
+              name: data[id].name,
+              rating: data[id].rating,
+            })
+          }
+          setTimeout(() => {
+            this.isLoading = false
+          },3000)
+
+          console.log(this.surveyResults)
+        } else {
+          setTimeout(() => {
+            this.isLoading = false
+          },3000)
         }
-
-        console.log(this.surveyResults)
-      }
-    }
-  }
-};
+      } catch(err) {
+        this.error = true
+        console.log(err)
+    }}}
+}
 </script>
 
 <style scoped>
