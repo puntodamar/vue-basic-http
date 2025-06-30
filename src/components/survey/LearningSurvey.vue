@@ -46,18 +46,26 @@ export default {
       invalidInput: false,
     };
   },
-  emits: ['survey-submit'],
   methods: {
-    submitSurvey() {
+    async submitSurvey() {
       if (this.enteredName === '' || !this.chosenRating) {
         this.invalidInput = true;
         return;
       }
       this.invalidInput = false;
 
-      this.$emit('survey-submit', {
-        userName: this.enteredName,
-        rating: this.chosenRating,
+      await fetch("https://vue-http-demo-85943-default-rtdb.asia-southeast1.firebasedatabase.app/surveys.json", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: this.enteredName,
+          rating: this.chosenRating,
+        })
+      }).catch(err => {
+        console.error('Fetch failed:', err);
+        // now you’ll see err.message and stack, and you won’t get “Uncaught…”
       });
 
       this.enteredName = '';
